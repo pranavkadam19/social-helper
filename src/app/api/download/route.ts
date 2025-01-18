@@ -4,10 +4,18 @@ import { Readable } from "stream";
 
 export const runtime = "nodejs";
 
+function sanitizeFilename(filename: string): string {
+  // Remove special characters and replace spaces with underscores
+  return filename
+    .replace(/['"…]/g, "") // Remove quotes and ellipsis
+    .replace(/[^a-zA-Z0-9-_.]/g, "_") // Replace other special chars with underscore
+    .replace(/_+/g, "_") // Replace multiple underscores with single
+    .trim();
+}
+
 export async function POST(req: Request) {
   try {
     const { url } = await req.json();
-
     if (!url) {
       return NextResponse.json(
         { error: "YouTube URL is required" },
@@ -16,26 +24,21 @@ export async function POST(req: Request) {
     }
 
     const info = await ytdl.getInfo(url);
-
-    // Filter formats to get only those with both video and audio
     const formats = info.formats.filter(
       (format) =>
         format.hasVideo &&
         format.hasAudio &&
         format.container === "mp4" &&
-        format.qualityLabel // Only include formats with quality info
+        format.qualityLabel
     );
 
-    // Sort by quality (resolution) in descending order
     formats.sort((a, b) => {
       const qualityA = parseInt(a.qualityLabel?.replace("p", "") || "0");
       const qualityB = parseInt(b.qualityLabel?.replace("p", "") || "0");
       return qualityB - qualityA;
     });
 
-    // Get the highest quality format
     const format = formats[0];
-
     if (!format) {
       return NextResponse.json(
         { error: "No suitable format found" },
@@ -43,17 +46,12 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log(
-      `Downloading: ${info.videoDetails.title} in ${format.qualityLabel}`
-    );
-
-    // Create video stream with the selected format
+    const safeFilename = sanitizeFilename(info.videoDetails.title);
     const videoStream = ytdl(url, { format });
 
-    // Return stream as response
     return new NextResponse(Readable.from(videoStream) as any, {
       headers: {
-        "Content-Disposition": `attachment; filename="${info.videoDetails.title}.mp4"`,
+        "Content-Disposition": `attachment; filename="${safeFilename}.mp4"`,
         "Content-Type": "video/mp4",
       },
     });
