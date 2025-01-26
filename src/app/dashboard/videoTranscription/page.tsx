@@ -4,63 +4,18 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Loader2, Upload } from "lucide-react";
-
-const languages = [
-  { value: "en", label: "English" },
-  { value: "es", label: "Spanish" },
-  { value: "fr", label: "French" },
-  { value: "de", label: "German" },
-  { value: "it", label: "Italian" },
-  { value: "pt", label: "Portuguese" },
-  { value: "hi", label: "Hindi" },
-  { value: "ja", label: "Japanese" },
-  { value: "ko", label: "Korean" },
-  { value: "zh", label: "Chinese" },
-  { value: "ar", label: "Arabic" },
-  { value: "ru", label: "Russian" },
-  { value: "bn", label: "Bengali" },
-  { value: "pa", label: "Punjabi" },
-  { value: "ta", label: "Tamil" },
-  { value: "tr", label: "Turkish" },
-  { value: "vi", label: "Vietnamese" },
-  { value: "fa", label: "Persian" },
-  { value: "ur", label: "Urdu" },
-  { value: "ms", label: "Malay" },
-  { value: "id", label: "Indonesian" },
-  { value: "th", label: "Thai" },
-  { value: "he", label: "Hebrew" },
-  { value: "sw", label: "Swahili" },
-];
 
 const VideoTranscription = () => {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [transcription, setTranscription] = useState<string>("");
-  const [language, setLanguage] = useState("en");
   const [error, setError] = useState<string | null>(null);
   const [subtitles, setSubtitles] = useState<{ vtt: string; srt: string }>({
     vtt: "",
     srt: "",
   });
-  const [targetLanguage, setTargetLanguage] = useState("en");
-  const [translatedText, setTranslatedText] = useState("");
   const [isTranscribed, setIsTranscribed] = useState(false);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [translatedSubtitles, setTranslatedSubtitles] = useState<{
-    vtt: string;
-    srt: string;
-  }>({
-    vtt: "",
-    srt: "",
-  });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setError(null);
@@ -115,17 +70,17 @@ const VideoTranscription = () => {
 
     switch (type) {
       case "text":
-        content = translatedText || transcription;
-        filename = `transcription${translatedText ? "_translated" : ""}.txt`;
+        content = transcription;
+        filename = "transcription.txt";
         break;
       case "vtt":
-        content = translatedSubtitles.vtt || subtitles.vtt;
-        filename = `subtitles${translatedText ? "_translated" : ""}.vtt`;
+        content = subtitles.vtt;
+        filename = "subtitles.vtt";
         mimeType = "text/vtt";
         break;
       case "srt":
-        content = translatedSubtitles.srt || subtitles.srt;
-        filename = `subtitles${translatedText ? "_translated" : ""}.srt`;
+        content = subtitles.srt;
+        filename = "subtitles.srt";
         mimeType = "application/x-subrip";
         break;
     }
@@ -139,37 +94,6 @@ const VideoTranscription = () => {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
-
-  const handleTranslate = async () => {
-    try {
-      setIsTranslating(true);
-      const response = await fetch("/api/translate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          text: transcription,
-          targetLanguage: targetLanguage,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Translation failed");
-      }
-
-      const data = await response.json();
-      setTranslatedText(data.translatedText);
-      setTranslatedSubtitles({
-        vtt: data.subtitles_vtt,
-        srt: data.subtitles_srt,
-      });
-    } catch (error) {
-      setError(error instanceof Error ? error.message : "Translation failed");
-    } finally {
-      setIsTranslating(false);
-    }
   };
 
   return (
@@ -211,36 +135,8 @@ const VideoTranscription = () => {
 
           {transcription && (
             <div className="space-y-4">
-              <div className="flex items-center gap-4 mb-4">
-                <Select
-                  value={targetLanguage}
-                  onValueChange={setTargetLanguage}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Translate to" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {languages.map((lang) => (
-                      <SelectItem key={lang.value} value={lang.value}>
-                        {lang.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <Button onClick={handleTranslate} disabled={isTranslating}>
-                  {isTranslating ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Translating...
-                    </>
-                  ) : (
-                    "Translate"
-                  )}
-                </Button>
-              </div>
-
               <div className="rounded-lg border p-4 min-h-[200px] max-h-[400px] overflow-y-auto">
-                {translatedText || transcription}
+                {transcription}
               </div>
               <div className="flex gap-2">
                 <Button

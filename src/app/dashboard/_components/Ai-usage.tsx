@@ -22,7 +22,14 @@ export const AIUsage = async () => {
 
   if (userAIOutputs.length > 0) {
     userAIOutputs.forEach((output) => {
-      totalUsage = totalUsage + Number(output.description?.length);
+      if (
+        output.description ==
+        "providing downloadable subtitles in srt, vtt and text format."
+      ) {
+        totalUsage = totalUsage + 1000;
+      } else {
+        totalUsage = totalUsage + Number(output.description?.length);
+      }
     });
 
     revalidatePath("/");

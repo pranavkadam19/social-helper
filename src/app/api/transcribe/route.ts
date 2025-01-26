@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { TranscriptionService } from "@/lib/transcriptionService";
 import { NextRequest } from "next/server";
 import { deductCredits } from "@/lib/credits";
+import { db } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,6 +44,16 @@ export async function POST(request: NextRequest) {
 
     // Optionally, save the transcription to the database
     // You can create a new entry similar to other AI outputs
+
+    const createNewDoc = await db.aIOutput.create({
+      data: {
+        userId,
+        title: "Video Transcription",
+        description:
+          "providing downloadable subtitles in srt, vtt and text format.",
+        templateUsed: "",
+      },
+    });
 
     return NextResponse.json({
       text: transcription.text,

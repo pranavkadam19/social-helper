@@ -12,7 +12,7 @@ export async function POST(req: Request) {
     const { title, description, templateUsed } = await req.json();
 
     // Get truncated description if needed
-    const result = await deductCredits(description);
+    const result = await deductCredits(description, description.length, userId);
 
     const createNewDoc = await db.aIOutput.create({
       data: {

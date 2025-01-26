@@ -85,7 +85,7 @@ const Upgrade = () => {
             <CardContent>
               <div>
                 <p className="flex my-2 gap-2">
-                  <Check /> 100,000 words/purchase
+                  <Check /> 10,000 words/purchase
                 </p>
                 <p className="flex my-2 gap-2">
                   <Check /> All Template Access
