@@ -2,7 +2,6 @@ import { SearchIcon } from "lucide-react";
 import React from "react";
 import { Categories } from "./categories";
 import { SignedIn, UserButton } from "@clerk/nextjs";
-
 const categories = [
   {
     name: "All",
