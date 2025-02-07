@@ -1,6 +1,5 @@
 import { ReactNode } from "react";
 import Navbar from "@/components/PollNavbar";
-
 interface PollLayoutProps {
   children: ReactNode;
 }

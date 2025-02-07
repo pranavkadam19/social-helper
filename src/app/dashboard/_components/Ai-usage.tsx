@@ -27,6 +27,9 @@ export const AIUsage = async () => {
         "providing downloadable subtitles in srt, vtt and text format."
       ) {
         totalUsage = totalUsage + 1000;
+      } else if (output.templateUsed == "poll_creation") {
+        totalUsage = totalUsage + 500;
+      } else if (output.templateUsed == "poll_vote") {
       } else {
         totalUsage = totalUsage + Number(output.description?.length);
       }

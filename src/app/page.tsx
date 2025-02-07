@@ -20,7 +20,7 @@ export default async function Home() {
       await db.user.create({
         data: {
           userId,
-          totalCredit: 10000, // Free credits for new users
+          totalCredit: 100000, // Free credits for new users
         },
       });
     }

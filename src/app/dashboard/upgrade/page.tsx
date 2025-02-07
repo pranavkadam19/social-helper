@@ -80,12 +80,12 @@ const Upgrade = () => {
           <Card className="w-[350px]">
             <CardHeader>
               <CardTitle>&#x20b9; 800 One-Time Purchase</CardTitle>
-              <CardDescription>10,000 AI Credit</CardDescription>
+              <CardDescription>100,000 AI Credit</CardDescription>
             </CardHeader>
             <CardContent>
               <div>
                 <p className="flex my-2 gap-2">
-                  <Check /> 10,000 words/purchase
+                  <Check /> 100,000 words/purchase
                 </p>
                 <p className="flex my-2 gap-2">
                   <Check /> All Template Access

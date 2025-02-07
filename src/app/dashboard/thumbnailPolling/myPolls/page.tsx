@@ -10,7 +10,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { BarChart, Clock, Edit, Trash2, ExternalLink } from "lucide-react";
+import { BarChart, Clock, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,10 +54,16 @@ const MyPolls = () => {
   const fetchMyPolls = async () => {
     try {
       const response = await fetch(`/api/poll/user/${userId}`);
-      console.log("Fetching polls for user:", userId);
       if (!response.ok) throw new Error("Failed to fetch polls");
       const data = await response.json();
-      setPolls(data);
+
+      // Calculate total votes for each poll
+      const updatedPolls = data.map((poll: Poll) => ({
+        ...poll,
+        totalVotes: poll.options.reduce((sum, option) => sum + option.votes, 0),
+      }));
+
+      setPolls(updatedPolls);
     } catch (err) {
       setError("Failed to load your polls");
     } finally {
@@ -89,13 +95,14 @@ const MyPolls = () => {
     });
   };
 
+  const calculateVotePercentage = (votes: number, totalVotes: number) => {
+    return totalVotes > 0 ? ((votes / totalVotes) * 100).toFixed(1) : "0.0";
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">My Polls</h1>
-        <Button onClick={() => router.push("/dashboard/thumbnailPolling")}>
-          Create New Poll
-        </Button>
       </div>
 
       {loading ? (
@@ -110,7 +117,7 @@ const MyPolls = () => {
             </p>
             <Button
               className="mt-4"
-              onClick={() => router.push("/polls/create")}
+              onClick={() => router.push("/dashboard/thumbnailPolling")}
             >
               Create Your First Poll
             </Button>
@@ -122,7 +129,7 @@ const MyPolls = () => {
             <Card key={poll.id}>
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <div>
+                  <div className="space-y-3">
                     <CardTitle>{poll.title}</CardTitle>
                     <CardDescription>{poll.description}</CardDescription>
                   </div>
@@ -131,9 +138,7 @@ const MyPolls = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => router.push(`/polls/${poll.id}/edit`)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    ></Button>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -154,7 +159,8 @@ const MyPolls = () => {
                         className="w-full h-24 object-cover rounded-lg"
                       />
                       <div className="absolute bottom-2 right-2 bg-black/60 text-white px-2 py-1 rounded text-sm">
-                        {((option.votes / poll.totalVotes) * 100).toFixed(1)}%
+                        {calculateVotePercentage(option.votes, poll.totalVotes)}
+                        %
                       </div>
                     </div>
                   ))}
@@ -171,14 +177,6 @@ const MyPolls = () => {
                       {formatDate(poll.createdAt)}
                     </span>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.push(`/polls/${poll.id}`)}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    View Details
-                  </Button>
                 </div>
               </CardContent>
             </Card>

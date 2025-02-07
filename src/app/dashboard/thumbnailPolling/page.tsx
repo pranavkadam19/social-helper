@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
 import {
   Card,
   CardContent,
@@ -14,18 +15,26 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Plus, Trash2, Upload } from "lucide-react";
 
-interface CreatePollProps {
-  userId: string; // Pass userId from parent component
-}
-
-const CreatePoll = ({ userId }: CreatePollProps) => {
+const CreatePoll = () => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [options, setOptions] = useState([
-    { text: "", imageFile: null, imagePreview: "" },
-  ]);
+  const [options, setOptions] = useState<
+    {
+      text: string;
+      imageFile: File | null;
+      imagePreview: string;
+    }[]
+  >([{ text: "", imageFile: null, imagePreview: "" }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const { user } = useUser();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      setUserId(user.id);
+    }
+  }, [user]);
 
   const handleImageChange = async (index: number, file: File | null) => {
     if (!file) return;
@@ -122,6 +131,10 @@ const CreatePoll = ({ userId }: CreatePollProps) => {
       setIsSubmitting(false);
     }
   };
+
+  if (!userId) {
+    return <div>Please log in to create a poll</div>;
+  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">

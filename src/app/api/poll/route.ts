@@ -34,13 +34,9 @@ export async function POST(req: Request) {
     }
 
     // Calculate content length for credit deduction
-    const contentLength =
-      title.length +
-      (description?.length || 0) +
-      options.reduce((acc, opt) => acc + opt.text.length, 0);
 
     // Deduct credits based on content length
-    await deductCredits(title, contentLength, userId);
+    await deductCredits(title, 500, userId);
 
     // Create poll with options
     const poll = await db.poll.create({
@@ -99,16 +95,26 @@ export async function GET(req: Request) {
             },
           },
         },
-        _count: {
-          select: { votes: true },
-        },
       },
       orderBy: {
         createdAt: "desc",
       },
     });
 
-    return NextResponse.json(polls);
+    // Transform polls to include actual vote counts and calculate totalVotes
+    const pollsWithVotes = polls.map((poll) => ({
+      ...poll,
+      options: poll.options.map((option) => ({
+        ...option,
+        votes: option._count.votes || 0,
+      })),
+      totalVotes: poll.options.reduce(
+        (sum, option) => sum + (option._count.votes || 0),
+        0
+      ),
+    }));
+
+    return NextResponse.json(pollsWithVotes);
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch polls" },
@@ -116,7 +122,6 @@ export async function GET(req: Request) {
     );
   }
 }
-
 // Handler for single poll
 export async function GET_POLL(req: Request, pollId: string) {
   try {
@@ -130,9 +135,6 @@ export async function GET_POLL(req: Request, pollId: string) {
             },
           },
         },
-        _count: {
-          select: { votes: true },
-        },
       },
     });
 
@@ -140,7 +142,20 @@ export async function GET_POLL(req: Request, pollId: string) {
       return NextResponse.json({ error: "Poll not found" }, { status: 404 });
     }
 
-    return NextResponse.json(poll);
+    // Transform poll to include actual vote counts
+    const pollWithVotes = {
+      ...poll,
+      options: poll.options.map((option) => ({
+        ...option,
+        votes: option._count.votes || 0,
+      })),
+      totalVotes: poll.options.reduce(
+        (sum, option) => sum + (option._count.votes || 0),
+        0
+      ),
+    };
+
+    return NextResponse.json(pollWithVotes);
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch poll" },
@@ -156,6 +171,15 @@ export async function POST_VOTE(req: Request, pollId: string) {
 
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Verify poll exists
+    const pollExists = await db.poll.findUnique({
+      where: { id: pollId },
+    });
+
+    if (!pollExists) {
+      return NextResponse.json({ error: "Poll not found" }, { status: 404 });
     }
 
     // Check if user has already voted
@@ -194,6 +218,7 @@ export async function POST_VOTE(req: Request, pollId: string) {
 
     return NextResponse.json(vote);
   } catch (error) {
+    console.error("Vote submission error:", error);
     return NextResponse.json(
       { error: "Failed to submit vote" },
       { status: 400 }

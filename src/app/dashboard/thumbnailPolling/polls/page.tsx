@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "@clerk/nextjs";
 
 interface PollOption {
   id: string;
@@ -41,6 +42,7 @@ interface Poll {
 }
 
 const AllPolls = () => {
+  const { user } = useUser();
   const [polls, setPolls] = useState<Poll[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -57,6 +59,7 @@ const AllPolls = () => {
       const response = await fetch("/api/poll");
       if (!response.ok) throw new Error("Failed to fetch polls");
       const data = await response.json();
+      console.log("Poll data:", data);
       setPolls(data);
     } catch (err) {
       setError("Failed to load polls");
@@ -66,19 +69,33 @@ const AllPolls = () => {
   };
 
   const handleVote = async (pollId: string, optionId: string) => {
+    if (!user) {
+      setError("You must be logged in to vote");
+      return;
+    }
+
     try {
       const response = await fetch(`/api/poll/${pollId}/vote`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ optionId }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          optionId,
+          // Also include userId in the body
+          userId: user.id,
+        }),
       });
 
-      if (!response.ok) throw new Error("Failed to submit vote");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to submit vote");
+      }
 
       // Refresh polls after voting
       fetchPolls();
     } catch (err) {
-      setError("Failed to submit vote");
+      setError(err instanceof Error ? err.message : "Failed to submit vote");
     }
   };
 
@@ -168,7 +185,7 @@ const AllPolls = () => {
                 <CardDescription>
                   {poll.description}
                   <span className="text-xs text-muted-foreground ml-2">
-                    by {poll.author.name}
+                    by {poll.author?.name || "Anonymous"}
                   </span>
                 </CardDescription>
               </CardHeader>

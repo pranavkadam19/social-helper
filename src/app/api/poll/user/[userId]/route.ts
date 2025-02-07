@@ -10,43 +10,44 @@ export async function GET(
   { params }: { params: { userId: string } }
 ) {
   try {
-    // Extract the userId from the dynamic route parameter
     const { userId } = params;
+    const { userId: authenticatedUserId } = getAuth(req);
 
-    // Check the authentication session using Clerk
-    console.log("Fetching polls for user:", userId);
-    const { userId: authenticatedUserId } = getAuth(req); // Use getAuth to get the current authenticated user's ID
     if (!authenticatedUserId || authenticatedUserId !== userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    // Fetch polls created by the user
     const polls = await db.poll.findMany({
-      where: {
-        userId,
-        isActive: true, // Only active polls
-      },
+      where: { userId },
       include: {
         options: {
           include: {
             _count: {
-              select: { votes: true }, // Include the number of votes for each option
+              select: { votes: true },
             },
           },
         },
-        _count: {
-          select: { votes: true }, // Include the total votes for the poll
-        },
       },
       orderBy: {
-        createdAt: "desc", // Order by creation date (newest first)
+        createdAt: "desc",
       },
     });
 
-    // Return the polls in the response
-    return NextResponse.json(polls);
+    // Transform polls to include actual vote counts
+    const pollsWithVotes = polls.map((poll) => ({
+      ...poll,
+      options: poll.options.map((option) => ({
+        ...option,
+        votes: option._count.votes || 0,
+      })),
+      totalVotes: poll.options.reduce(
+        (sum, option) => sum + (option._count.votes || 0),
+        0
+      ),
+    }));
+
+    return NextResponse.json(pollsWithVotes);
   } catch (error) {
-    console.error("Error fetching polls:", error);
     return NextResponse.json(
       { error: "Failed to fetch polls" },
       { status: 500 }

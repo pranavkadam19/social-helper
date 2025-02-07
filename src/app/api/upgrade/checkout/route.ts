@@ -23,7 +23,7 @@ export async function POST() {
     const purchase = await db.purchase.create({
       data: {
         userId: userId,
-        credit: 10000,
+        credit: 100000,
       },
     });
 
@@ -34,7 +34,7 @@ export async function POST() {
       },
       data: {
         totalCredit: {
-          increment: 10000,
+          increment: 100000,
         },
       },
     });
