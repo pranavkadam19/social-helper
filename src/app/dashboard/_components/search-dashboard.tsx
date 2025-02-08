@@ -54,7 +54,7 @@ export const SearchDashboard = ({
         <div className="ml-auto">
           <div className="flex items-center gap-2">
             <SignedIn>
-              <UserButton />
+              <UserButton afterSignOutUrl="/" />
               <span className="text-lg">Profile</span>
             </SignedIn>
           </div>
