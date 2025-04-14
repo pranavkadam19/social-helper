@@ -44,7 +44,7 @@ export async function POST(req: Request) {
         await db.user.create({
           data: {
             userId: userId,
-            totalCredit: 10000 + 10000,
+            totalCredit: 100000 + 100000,
           },
         });
       } else {
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
             userId: userId,
           },
           data: {
-            totalCredit: findUserByUserID.totalCredit + 10000,
+            totalCredit: findUserByUserID.totalCredit + 100000,
           },
         });
       }

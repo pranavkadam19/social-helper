@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useRouter } from "next/navigation";
 
+import { useCallback } from "react";
+
 interface PollOption {
   id: string;
   text: string;
@@ -47,17 +49,13 @@ const MyPolls = () => {
   const [error, setError] = useState("");
   const [pollToDelete, setPollToDelete] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (userId) fetchMyPolls();
-  }, [userId]);
-
-  const fetchMyPolls = async () => {
+  const fetchMyPolls = useCallback(async () => {
+    if (!userId) return;
     try {
       const response = await fetch(`/api/poll/user/${userId}`);
       if (!response.ok) throw new Error("Failed to fetch polls");
       const data = await response.json();
 
-      // Calculate total votes for each poll
       const updatedPolls = data.map((poll: Poll) => ({
         ...poll,
         totalVotes: poll.options.reduce((sum, option) => sum + option.votes, 0),
@@ -69,7 +67,11 @@ const MyPolls = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
+
+  useEffect(() => {
+    fetchMyPolls();
+  }, [fetchMyPolls]);
 
   const handleDelete = async (pollId: string) => {
     try {
@@ -113,7 +115,7 @@ const MyPolls = () => {
         <Card>
           <CardContent className="p-6 text-center">
             <p className="text-muted-foreground">
-              You haven't created any polls yet.
+              You have not created any polls yet.
             </p>
             <Button
               className="mt-4"

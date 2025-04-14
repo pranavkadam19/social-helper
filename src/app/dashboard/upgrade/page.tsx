@@ -29,7 +29,7 @@ const Upgrade = () => {
         amount: amount,
         currency: currency,
         name: "Social Helper",
-        description: "10,000 AI Credits Purchase",
+        description: "100,000 AI Credits Purchase",
         order_id: orderId,
         prefill: {
           name: name,
