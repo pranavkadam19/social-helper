@@ -24,6 +24,7 @@ import {
 import { useRouter } from "next/navigation";
 
 import { useCallback } from "react";
+import Image from "next/image";
 
 interface PollOption {
   id: string;
@@ -139,11 +140,6 @@ const MyPolls = () => {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => router.push(`/polls/${poll.id}/edit`)}
-                    ></Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
                       onClick={() => setPollToDelete(poll.id)}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -155,7 +151,7 @@ const MyPolls = () => {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {poll.options.map((option) => (
                     <div key={option.id} className="relative">
-                      <img
+                      <Image
                         src={option.imageUrl}
                         alt={option.text}
                         className="w-full h-24 object-cover rounded-lg"
@@ -194,8 +190,11 @@ const MyPolls = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Poll</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this poll? This action cannot be
-              undone.
+              <AlertDialogDescription>
+                {
+                  "Are you sure you want to delete this poll? This action can't be undone."
+                }
+              </AlertDialogDescription>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

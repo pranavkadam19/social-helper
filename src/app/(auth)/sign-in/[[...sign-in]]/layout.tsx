@@ -1,7 +1,10 @@
 import React from "react";
-const layout = ({ children }: Readonly<{ children: React.ReactNode }>) => {
+
+export default function Layout(props: { children: any }) {
+  const { children } = props;
   return (
-    <div className="flex items-center justify-center h-screen">{children}</div>
+    <div className="flex items-center justify-center h-screen">
+      {children as React.ReactNode}
+    </div>
   );
-};
-export default layout;
+}
